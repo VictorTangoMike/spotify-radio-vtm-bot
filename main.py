@@ -106,20 +106,21 @@ def obter_episodio_rotativo(sp, show_id, episodios_tocados, palavra_ignorada=Non
 
         episodios_validos = []
         for ep in todos_episodios:
-            if palavra_ignorada and palavra_ignorada.lower() in ep['name'].lower(): continue
+            if not ep: continue
+            if palavra_ignorada and palavra_ignorada.lower() in ep.get('name', '').lower(): continue
             episodios_validos.append(ep)
 
-        episodios_validos.sort(key=lambda x: x['release_date'])
+        episodios_validos.sort(key=lambda x: x.get('release_date', ''))
 
         for ep in episodios_validos:
-            if ep['uri'] not in episodios_tocados:
+            if ep.get('uri') and ep['uri'] not in episodios_tocados:
                 return ep['uri']
                 
         print(f"  [!] Podcast {nome_exibicao} has no new episodes (you have heard the 1000 most recent).")
     except Exception as e:
         print(f"  [Error] Failed to read podcast {nome_exibicao}: {e}")
     return None
-
+    
 def obter_jesus_do_dia(sp, show_id, palavra_chave):
     try:
         results = sp.show_episodes(show_id, limit=5, market='BR')
