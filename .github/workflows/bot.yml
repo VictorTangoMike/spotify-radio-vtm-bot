@@ -1,0 +1,45 @@
+name: Bot Spotify Matinal - 1
+
+on:
+  workflow_dispatch: # Apenas essa linha! É a "campainha" que o cron-job.org vai tocar.
+
+jobs:
+  atualizar-playlist:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Instalar dependências (Spotipy)
+      run: |
+        python -m pip install --upgrade pip
+        pip install spotipy python-dotenv
+
+    - name: Rodar a Rádio (main.py)
+      env:
+        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+        SPOTIFY_USERNAME: ${{ secrets.SPOTIFY_USERNAME }}
+      run: python main.py
+      
+    - name: Salvar a memória do robô (Commit & Push)
+      run: |
+        git config --global user.name "GitHub Actions Bot"
+        git config --global user.email "actions@github.com"
+        
+        git add played_history.json played_episodes.json .cache*
+        
+        git commit -m "🤖 Atualização diária do histórico e cache" || exit 0
+        
+        git pull --rebase origin main
+        
+        git push
